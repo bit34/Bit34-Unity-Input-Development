@@ -1,0 +1,3 @@
+[submodule "Assets/Bit34-Unity-Input"]
+	path = Assets/Bit34-Unity-Input
+	url = git@github.com:bit34/Bit34-Unity-Input.git
