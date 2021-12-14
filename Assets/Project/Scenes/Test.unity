@@ -510,10 +510,10 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 074da65664e334543ab9e13a37d58e07, type: 3}
-    m_FontSize: 23
+    m_FontSize: 22
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 4
+    m_MinSize: 2
     m_MaxSize: 107
     m_Alignment: 0
     m_AlignByGeometry: 0
@@ -530,7 +530,10 @@ MonoBehaviour:
     - Right
     click to instant focus
 
-    - Middle drag to pan
+    - Middle click to focus and zoom
+
+    - Middle drag
+    to pan
 
     - Scroll wheel to zoom'
 --- !u!222 &72853675
@@ -2424,7 +2427,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 300}
+  m_SizeDelta: {x: 0, y: 290}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1437545482
 MonoBehaviour:
@@ -2532,11 +2535,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '- New Text
-
-    - asdf
-
-    - 1234  '
+  m_Text: "- 1 New Text\n- 2 asdf\n- 3 1234  \n- 4\n- 5\n- 6\n- 7\n- 8\n- 9\n- 10"
 --- !u!222 &1478898910
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2577,7 +2576,7 @@ MonoBehaviour:
   _infoButton: {fileID: 21035223}
   _infoPanel: {fileID: 1148159947}
   _logText: {fileID: 1478898909}
-  _MaxLog: 10
+  _maxLog: 10
   _clearLogButton: {fileID: 429773710}
   _cameraContollerButton: {fileID: 44556088}
   _cameraContollerButtonLabel: {fileID: 623890451}

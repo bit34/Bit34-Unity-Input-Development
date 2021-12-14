@@ -24,7 +24,7 @@ public class TestController : MonoBehaviour, IPointerInputHandler
     [SerializeField] private GameObject _infoPanel;
     [Header("Logging")]
     [SerializeField] private Text       _logText;
-    [SerializeField] private int        _MaxLog;
+    [SerializeField] private int        _maxLog;
     [SerializeField] private Button     _clearLogButton;
     [Header("Camera controller")]
     [SerializeField] private Button     _cameraContollerButton;
@@ -106,7 +106,7 @@ public class TestController : MonoBehaviour, IPointerInputHandler
     {
         _logs.Add(message);
 
-        while(_logs.Count > _MaxLog)
+        while(_logs.Count > _maxLog)
         {
             _logs.RemoveAt(0);
         }
@@ -239,6 +239,12 @@ public class TestController : MonoBehaviour, IPointerInputHandler
             if (pointerId == PointerInputConstants.MOUSE_RIGHT_DRAG_POINTER_ID)
             {
                 _cameraController.SetPosition(objectUnderPointer.transform.position, true);
+            }
+            else
+            if (pointerId == PointerInputConstants.MOUSE_MIDDLE_DRAG_POINTER_ID)
+            {
+                _cameraController.SetSize(CAMERA_MINIMUM_SIZE);
+                _cameraController.SetPosition(objectUnderPointer.transform.position, false);
             }
         }
     }
