@@ -14,6 +14,8 @@ public class TestController : MonoBehaviour, IPointerInputHandler
     private const float CAMERA_MINIMUM_SIZE           = 1;
     private const float CAMERA_MAXIMUM_SIZE           = 6;
     private const float CAMERA_SCROLL_ZOOM_MULTIPLIER = 1;
+    private const int   KEYBOARD_INPUT_GROUP_GENERAL      = 1;
+    private const int   KEYBOARD_INPUT_GROUP_NOT_DRAGGING = 2;
 
 
     //  MEMBERS
@@ -45,7 +47,6 @@ public class TestController : MonoBehaviour, IPointerInputHandler
     private GameObject              _highlightedObject;
     private TopDownCameraController _cameraController;
 
-
     //  METHODS
 #region Unity callbacks
      
@@ -58,7 +59,13 @@ public class TestController : MonoBehaviour, IPointerInputHandler
         InitializeLog();
         InitializeCameraController();
         InitializeScene();
+        InitializeKeyboard();
 	}
+
+    private void Update()
+    {
+        InputManager.SetKeyGroupState(KEYBOARD_INPUT_GROUP_NOT_DRAGGING, !_cameraController.IsDragging);
+    }
 
 #endregion
 
@@ -160,6 +167,33 @@ public class TestController : MonoBehaviour, IPointerInputHandler
         Vector2 currentPosition;
         InputManager.GetPointerPosition(pointerId, out startPosition, out currentPosition);
         _cameraController.DragWithPointer(pointerId, startPosition);
+    }
+
+    private void ShowAllObjects()
+    {
+        Bounds bounds = new Bounds();
+        bounds = IterateObjectBounds(transform, bounds);
+        _cameraController.SetPosition(bounds.center, false);
+        _cameraController.SetSize(bounds.size.z*0.5f);
+    }
+
+    private Bounds IterateObjectBounds(Transform objectTransform, Bounds bounds)
+    {
+        for (int i = 0; i < objectTransform.childCount; i++)
+        {
+            Transform childTransform = objectTransform.GetChild(i);
+            if (childTransform.GetComponent<TestInputObject>() != null && 
+                childTransform.gameObject.activeInHierarchy)
+            {
+                Renderer childRenderer = childTransform.GetComponent<Renderer>();
+                if (childRenderer != null)
+                {
+                    bounds.Encapsulate(childRenderer.bounds);
+                }
+            }
+            bounds = IterateObjectBounds(childTransform, bounds);
+        }
+        return bounds;
     }
 
 #endregion
@@ -287,4 +321,16 @@ public class TestController : MonoBehaviour, IPointerInputHandler
 
 #endregion
 
+#region Keyboard Methods
+     
+    private void InitializeKeyboard()
+    {
+        InputManager.AddKeyboardInput(KEYBOARD_INPUT_GROUP_GENERAL,      null,                               KeyCode.C, false, ClearLog);
+        InputManager.AddKeyboardInput(KEYBOARD_INPUT_GROUP_NOT_DRAGGING, new KeyCode[]{KeyCode.LeftControl}, KeyCode.A, true,  ShowAllObjects);
+        
+        InputManager.SetKeyGroupState(KEYBOARD_INPUT_GROUP_GENERAL,      true);
+        InputManager.SetKeyGroupState(KEYBOARD_INPUT_GROUP_NOT_DRAGGING, true);
+    }
+
+#endregion
 }
