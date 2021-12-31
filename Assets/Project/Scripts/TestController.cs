@@ -9,12 +9,12 @@ using Com.Bit34Games.Unity.Camera;
 public class TestController : MonoBehaviour, IPointerInputHandler
 {
     //  CONSTANTS
-    private const float CAMERA_POSITION_FOLLOW        = 0.5f;
-    private const float CAMERA_ZOOM_FOLLOW            = 0.5f;
-    private const float CAMERA_MINIMUM_SIZE           = 1;
-    private const float CAMERA_MAXIMUM_SIZE           = 6;
+    private const float CAMERA_POSITION_FOLLOW = 0.5f;
+    private const float CAMERA_ZOOM_FOLLOW = 0.5f;
+    private const float CAMERA_MINIMUM_SIZE = 1;
+    private const float CAMERA_MAXIMUM_SIZE = 6;
     private const float CAMERA_SCROLL_ZOOM_MULTIPLIER = 1;
-    private const int   KEYBOARD_INPUT_GROUP_GENERAL      = 1;
+    private const int   KEYBOARD_INPUT_GROUP_GENERAL = 1;
     private const int   KEYBOARD_INPUT_GROUP_NOT_DRAGGING = 2;
 
 
@@ -24,16 +24,20 @@ public class TestController : MonoBehaviour, IPointerInputHandler
     [Header("Info")]
     [SerializeField] private Button     _infoButton;
     [SerializeField] private GameObject _infoPanel;
-    [Header("Logging")]
-    [SerializeField] private Text       _logText;
-    [SerializeField] private int        _maxLog;
-    [SerializeField] private Button     _clearLogButton;
-    [Header("Camera controller")]
+    [Header("Settings")]
+    [SerializeField] private Button     _settingsButton;
+    [SerializeField] private GameObject _settingsPanel;
     [SerializeField] private Button     _cameraContollerButton;
     [SerializeField] private Text       _cameraContollerButtonLabel;
+    [SerializeField] private Button     _inputToggleObjectButton;
+    [Header("Logging")]
+    [SerializeField] private Button     _logButton;
+    [SerializeField] private GameObject _logPanel;
+    [SerializeField] private Button     _clearLogButton;
+    [SerializeField] private Text       _logText;
+    [SerializeField] private int        _maxLog;
     [Header("Scene")]
     [SerializeField] private GameObject _boundriesObject;
-    [SerializeField] private Button     _inputToggleObjectButton;
     [SerializeField] private GameObject _inputToggleObject;
     [SerializeField] private GameObject _visibilityToggleObject;
     [SerializeField] private GameObject _createdObjectPrefab;
@@ -49,17 +53,21 @@ public class TestController : MonoBehaviour, IPointerInputHandler
 
     //  METHODS
 #region Unity callbacks
-     
+
 	void Start ()
     {
         InputManager.Initialize();
         InputManager.AddPointerHandler(this);
+        AddKeyActions();
 
-        _infoButton.onClick.AddListener(()=>{ _infoPanel.SetActive(!_infoPanel.activeSelf); });
+        InitializeInfo();
+        InitializeSettings();
         InitializeLog();
+
         InitializeCameraController();
         InitializeScene();
-        InitializeKeyboard();
+
+        SetCameraController(true);
 	}
 
     private void Update()
@@ -69,10 +77,45 @@ public class TestController : MonoBehaviour, IPointerInputHandler
 
 #endregion
 
+#region Info
+
+    private void InitializeInfo()
+    {
+        _infoButton.onClick.AddListener(()=>{ _infoPanel.SetActive(!_infoPanel.activeSelf); });
+    }
+
+#endregion
+
+#region Settings
+
+    private void InitializeSettings()
+    {
+        _settingsButton.onClick.AddListener(()=>{ _settingsPanel.SetActive(!_settingsPanel.activeSelf); });
+
+        _cameraContollerButton.onClick.AddListener(()=> { SetCameraController(!_cameraController.IsActive); });
+    }
+
+    private void SetCameraController(bool state)
+    {
+        _cameraController.SetActivate(state);
+        if(state)
+        {
+            _cameraContollerButtonLabel.text = "Camera Control : Active";
+        }
+        else
+        {
+            _cameraContollerButtonLabel.text = "Camera Control : Deactive";
+        }
+    }
+
+#endregion
+
 #region Logging
 
     private void InitializeLog()
     {
+        _logButton.onClick.AddListener(()=>{ _logPanel.SetActive(!_logPanel.activeSelf); });
+
         _logs = new List<string>();
         _clearLogButton.onClick.AddListener(ClearLog);
 
@@ -86,7 +129,7 @@ public class TestController : MonoBehaviour, IPointerInputHandler
         {
             TestInputObject         testObject = testGameObject.GetComponent<TestInputObject>();
             TestInputObjectCategory testObjectCategory = (TestInputObjectCategory)testObject.Category;
-            return "[" + testObject.name + " " + testObjectCategory + "-" + testObject.Id + "]";
+            return "[" + testObjectCategory + "-" + testObject.Id + " " + testObject.name  + "]";
         }
         return "[None]";
     }
@@ -127,8 +170,10 @@ public class TestController : MonoBehaviour, IPointerInputHandler
 
 //        Debug.Log(message);
     }
-    
+
 #endregion
+
+
 
 #region Camera Controller
 
@@ -139,37 +184,14 @@ public class TestController : MonoBehaviour, IPointerInputHandler
         _cameraController.SetupMovement(CAMERA_POSITION_FOLLOW);
         _cameraController.SetMovementLimits(worldBounds.min.x, worldBounds.max.x, worldBounds.min.z, worldBounds.max.z);
         _cameraController.SetupZoom(CAMERA_ZOOM_FOLLOW, CAMERA_MINIMUM_SIZE, CAMERA_MAXIMUM_SIZE, true, CAMERA_SCROLL_ZOOM_MULTIPLIER);
-
-        _cameraContollerButton.onClick.AddListener(()=>
-        {
-            SetCameraController(!_cameraController.IsActive);
-        });
-
-        SetCameraController(true);
-    }
-
-    private void SetCameraController(bool state)
-    {
-        _cameraController.SetActivate(state);
-        if(state)
-        {
-            _cameraContollerButtonLabel.text = "Camera Control : Active";
-        }
-        else
-        {
-            _cameraContollerButtonLabel.text = "Camera Control : Deactive";
-        }
     }
 
     private void StartCameraDrag(int pointerId)
     {
-        Vector2 startPosition;
-        Vector2 currentPosition;
-        InputManager.GetPointerPosition(pointerId, out startPosition, out currentPosition);
-        _cameraController.DragWithPointer(pointerId, startPosition);
+        _cameraController.DragWithPointer(pointerId, true);
     }
 
-    private void ShowAllObjects()
+    private void SeeAllObjects()
     {
         Bounds bounds = new Bounds();
         bounds = IterateObjectBounds(transform, bounds);
@@ -177,12 +199,18 @@ public class TestController : MonoBehaviour, IPointerInputHandler
         _cameraController.SetSize(bounds.size.z*0.5f);
     }
 
+    private void ZoomOut()
+    {
+        _cameraController.SetPosition(_boundriesObject.transform.position, false);
+        _cameraController.SetSize(CAMERA_MAXIMUM_SIZE);
+    }
+
     private Bounds IterateObjectBounds(Transform objectTransform, Bounds bounds)
     {
         for (int i = 0; i < objectTransform.childCount; i++)
         {
             Transform childTransform = objectTransform.GetChild(i);
-            if (childTransform.GetComponent<TestInputObject>() != null && 
+            if (childTransform.GetComponent<TestInputObject>() != null &&
                 childTransform.gameObject.activeInHierarchy)
             {
                 Renderer childRenderer = childTransform.GetComponent<Renderer>();
@@ -243,18 +271,20 @@ public class TestController : MonoBehaviour, IPointerInputHandler
     }
 
 #endregion
-     
+
 #region IInputHandler implementations
-    
+
     public void OnPointerDown(int pointerId, Vector2 screenPosition, GameObject objectUnderPointer)
     {
 //        Log(GetPointerInfo(pointerId) + "[Down  ]" + GetObjectInfo(objectUnderPointer));
     }
 
     public void OnPointerMove(int pointerId, Vector2 screenPosition, GameObject objectUnderPointer)
-    {}
+    {
+//        Log(GetPointerInfo(pointerId) + "[Move  ]" + GetObjectInfo(objectUnderPointer));
+    }
 
-    public void OnPointerUp(int pointerId, Vector2 screenPosition, GameObject objectUnderPointer)
+    public void OnPointerUp(int pointerId, Vector2 screenPosition, GameObject objectUnderPointer, bool willSendClick)
     {
 //        Log(GetPointerInfo(pointerId) + "[Up    ]" + GetObjectInfo(objectUnderPointer));
     }
@@ -263,7 +293,7 @@ public class TestController : MonoBehaviour, IPointerInputHandler
     {
         Log(GetPointerInfo(pointerId) + "[Click ]" + GetObjectInfo(objectUnderPointer));
 
-        if (objectUnderPointer != null)
+        if (_cameraController.IsDragging == false && objectUnderPointer != null)
         {
             if (pointerId == PointerInputConstants.MOUSE_LEFT_DRAG_POINTER_ID)
             {
@@ -322,12 +352,13 @@ public class TestController : MonoBehaviour, IPointerInputHandler
 #endregion
 
 #region Keyboard Methods
-     
-    private void InitializeKeyboard()
+
+    private void AddKeyActions()
     {
-        InputManager.AddKeyboardInput(KEYBOARD_INPUT_GROUP_GENERAL,      null,                               KeyCode.C, false, ClearLog);
-        InputManager.AddKeyboardInput(KEYBOARD_INPUT_GROUP_NOT_DRAGGING, new KeyCode[]{KeyCode.LeftControl}, KeyCode.A, true,  ShowAllObjects);
-        
+        InputManager.AddKeyboardInput(KEYBOARD_INPUT_GROUP_GENERAL,      null,                                                  KeyCode.C, false, ClearLog);
+        InputManager.AddKeyboardInput(KEYBOARD_INPUT_GROUP_NOT_DRAGGING, new KeyCode[]{KeyCode.LeftControl},                    KeyCode.A, true,  SeeAllObjects);
+        InputManager.AddKeyboardInput(KEYBOARD_INPUT_GROUP_NOT_DRAGGING, new KeyCode[]{KeyCode.LeftControl, KeyCode.LeftShift}, KeyCode.A, true,  ZoomOut);
+
         InputManager.SetKeyGroupState(KEYBOARD_INPUT_GROUP_GENERAL,      true);
         InputManager.SetKeyGroupState(KEYBOARD_INPUT_GROUP_NOT_DRAGGING, true);
     }
